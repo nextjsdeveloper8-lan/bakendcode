@@ -1,0 +1,131 @@
+
+-- users table you can use as a starting point.
+CREATE TABLE users (
+    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+
+    username VARCHAR(50) NOT NULL,
+    email VARCHAR(255) NOT NULL UNIQUE,
+
+    password_hash TEXT NOT NULL,
+
+    role VARCHAR(50) NOT NULL DEFAULT 'user',
+
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- user can have only one address,
+CREATE TABLE user_address (
+    user_id BIGINT PRIMARY KEY,
+
+    full_name VARCHAR(150),
+    phone VARCHAR(30),
+
+    address_line1 VARCHAR(255) NOT NULL,
+    address_line2 VARCHAR(255),
+
+    city VARCHAR(100) NOT NULL,
+    state VARCHAR(100),
+    postal_code VARCHAR(20) NOT NULL,
+    country VARCHAR(100) NOT NULL,
+
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+
+    CONSTRAINT fk_user_address_user
+        FOREIGN KEY (user_id)
+        REFERENCES users(id)
+        ON DELETE CASCADE
+);
+-- Category table
+CREATE TABLE book_category (
+    category_id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+
+    category_name VARCHAR(100) NOT NULL UNIQUE,
+
+    category_status VARCHAR(20) NOT NULL DEFAULT 'active'
+        CHECK (category_status IN ('active','inactive')),
+
+    create_time TIMESTAMPTZ NOT NULL DEFAULT now(),
+    update_time TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- book
+
+CREATE TABLE book (
+    book_id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+
+    category_id BIGINT NOT NULL,
+
+    book_name VARCHAR(150) NOT NULL,
+
+    book_type VARCHAR(10) NOT NULL
+        CHECK (book_type IN ('rent','sell')),
+
+    sell_price NUMERIC(10,2),
+    rent_price NUMERIC(10,2),
+
+    book_status VARCHAR(20) NOT NULL DEFAULT 'active'
+        CHECK (book_status IN ('active','inactive')),
+
+    create_time TIMESTAMPTZ NOT NULL DEFAULT now(),
+    update_time TIMESTAMPTZ NOT NULL DEFAULT now(),
+
+    CONSTRAINT fk_book_category
+        FOREIGN KEY (category_id)
+        REFERENCES book_category(category_id)
+        ON DELETE RESTRICT,
+
+    CONSTRAINT chk_book_price
+    CHECK (
+        (book_type = 'sell' AND sell_price IS NOT NULL AND rent_price IS NULL)
+        OR
+        (book_type = 'rent' AND rent_price IS NOT NULL AND sell_price IS NULL)
+    )
+);
+
+
+-- book_details table
+CREATE TABLE book_details (
+    book_id BIGINT PRIMARY KEY,
+
+    book_language VARCHAR(50),
+    book_pages INTEGER CHECK (book_pages > 0),
+    book_description TEXT,
+
+    book_status VARCHAR(20) NOT NULL DEFAULT 'active'
+        CHECK (book_status IN ('active','inactive')),
+
+    create_time TIMESTAMPTZ NOT NULL DEFAULT now(),
+    update_time TIMESTAMPTZ NOT NULL DEFAULT now(),
+
+    CONSTRAINT fk_book_details_book
+        FOREIGN KEY (book_id)
+        REFERENCES book(book_id)
+        ON DELETE CASCADE
+);
+
+-- product_images
+CREATE TABLE book_images (
+    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    product_id BIGINT NOT NULL,
+    image_url TEXT NOT NULL,
+    is_primary BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    CONSTRAINT fk_product_images_product
+        FOREIGN KEY (product_id)
+        REFERENCES products(id)
+        ON DELETE CASCADE
+);
+
+
+
+
+
+
+
+
+
+
